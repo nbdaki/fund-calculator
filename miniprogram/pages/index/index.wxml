@@ -1,0 +1,5 @@
+<view class="container">
+  <view class="empty-table">
+    内容占位区域，后续可自行添加表格、数据
+  </view>
+</view>

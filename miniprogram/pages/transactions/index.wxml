@@ -1,0 +1,29 @@
+<!-- 添加按钮 -->
+<view class="add-btn" bindtap="showModal">+ 添加交易记录</view>
+
+<!-- 交易列表 -->
+<view class="list">
+  <view class="item" wx:for="{{recordList}}" wx:key="index">
+    <view>单价：{{item.price}}</view>
+    <view>份数：{{item.count}}</view>
+    <view>手续费：{{item.count}}</view>
+    <view>总金额：{{item.count}}</view>
+    <view>时间：{{item.date}}</view>
+  </view>
+</view>
+
+<!-- 弹窗 -->
+<view class="modal-mask" wx:if="{{showModal}}">
+  <view class="modal">
+    <view class="title">新增交易</view>
+    <input placeholder="交易日期" bindinput="inputDate" value="{{date}}"></input>
+    <input placeholder="单价" bindinput="inputPrice" value="{{price}}"></input>
+    <input placeholder="份数" bindinput="inputCount" value="{{count}}"></input>
+    <input placeholder="手续费" bindinput="inputFee" value="{{fee}}"></input>
+    <input placeholder="总金额" bindinput="inputTotal" value="{{total}}"></input>
+    <view class="btn-wrap">
+      <button size="mini" bindtap="hideModal">取消</button>
+      <button size="mini" type="primary" bindtap="saveRecord">保存</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,49 @@
+.add-btn {
+  background: #1677ff;
+  color: #fff;
+  text-align: center;
+  line-height: 80rpx;
+  border-radius: 12rpx;
+  margin: 20rpx;
+}
+.item {
+  padding: 20rpx;
+  margin: 20rpx;
+  background: #fff;
+  border-radius: 12rpx;
+}
+
+/* 弹窗样式 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  width: 80%;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+.title {
+  text-align: center;
+  font-size: 32rpx;
+  margin-bottom: 30rpx;
+}
+input {
+  border: 1px solid #eee;
+  padding: 20rpx;
+  margin: 15rpx 0;
+  border-radius: 8rpx;
+}
+.btn-wrap {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30rpx;
+}
