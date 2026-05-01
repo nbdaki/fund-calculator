@@ -1,3 +1,6 @@
+// pages/index/index.js
+const db = wx.cloud.database();
+
 Page({
   data: {
     showModal: false,
@@ -7,9 +10,16 @@ Page({
   },
 
   onShow() {
-    // 页面打开读取本地缓存
-    let list = wx.getStorageSync('tradeRecord') || [];
-    this.setData({ recordList: list });
+    this.loadRecords();
+  },
+
+  loadRecords() {
+    db.collection('transaction').orderBy('createTime', 'desc').get().then(res => {
+      this.setData({ recordList: res.data });
+    }).catch(err => {
+      console.error('获取记录失败', err);
+      wx.showToast({ title: '获取记录失败', icon: 'none' });
+    });
   },
 
   showModal() {
@@ -30,7 +40,7 @@ Page({
     this.setData({ desc: e.detail.value });
   },
 
-  // 保存记录到本地
+  // 保存记录到云数据库
   saveRecord() {
     const { money, desc } = this.data;
     if(!money) {
@@ -39,19 +49,25 @@ Page({
     }
     // 组装数据
     let newItem = {
-      time: new Date().toLocaleString(),
+      time: new Date(),
       money: money,
-      desc: desc
+      desc: desc,
+      type: 'fund' // 区分基金记录
     };
-    let list = wx.getStorageSync('tradeRecord') || [];
-    list.unshift(newItem); // 最新在最前面
 
-    // 存入缓存 + 更新页面
-    wx.setStorageSync('tradeRecord', list);
-    this.setData({
-      recordList: list,
-      showModal: false
-    })
-    wx.showToast({ title: '保存成功' })
+    db.collection('transaction').add({
+      data: newItem
+    }).then(res => {
+      this.loadRecords(); // 重新加载记录
+      this.setData({
+        showModal: false,
+        money: '',
+        desc: ''
+      });
+      wx.showToast({ title: '保存成功' });
+    }).catch(err => {
+      console.error('保存失败', err);
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    });
   }
 })

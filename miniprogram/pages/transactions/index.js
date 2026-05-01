@@ -1,3 +1,6 @@
+// pages/transactions/index.js
+const db = wx.cloud.database();
+
 Page({
   data: {
     showModal: false,
@@ -10,8 +13,16 @@ Page({
   },
 
   onShow() {
-    let list = wx.getStorageSync('tradeRecord') || [];
-    this.setData({ recordList: list });
+    this.loadRecords();
+  },
+
+  loadRecords() {
+    db.collection('transaction').orderBy('createTime', 'desc').get().then(res => {
+      this.setData({ recordList: res.data });
+    }).catch(err => {
+      console.error('获取记录失败', err);
+      wx.showToast({ title: '获取记录失败', icon: 'none' });
+    });
   },
 
   showModal() {
@@ -45,14 +56,18 @@ Page({
 
     let newItem = {
       date, price, count, fee, total,
-      createTime: new Date().toLocaleString()
+      createTime: new Date()
     };
 
-    let list = wx.getStorageSync('tradeRecord') || [];
-    list.unshift(newItem);
-    wx.setStorageSync('tradeRecord', list);
-
-    this.setData({ recordList: list, showModal: false });
-    wx.showToast({ title: '保存成功' });
+    db.collection('transaction').add({
+      data: newItem
+    }).then(res => {
+      this.loadRecords(); // 重新加载记录
+      this.setData({ showModal: false, date: '', price: '', count: '', fee: '', total: '' });
+      wx.showToast({ title: '保存成功' });
+    }).catch(err => {
+      console.error('保存失败', err);
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    });
   }
 })
