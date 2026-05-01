@@ -1,5 +1,37 @@
 <view class="container">
-  <view class="empty-table">
-    内容占位区域，后续可自行添加表格、数据
+  <view class="stock-banner">
+    <view class="stock-title">昨日收盘价</view>
+    <view class="stock-value">
+      <text wx:if="{{stockLoading}}">加载中...</text>
+      <text wx:elif="{{stockInfo.prevClose}}">¥{{stockInfo.prevClose}}</text>
+      <text wx:elif="{{stockInfo.error}}">{{stockInfo.error}}</text>
+      <text wx:else>暂无数据</text>
+    </view>
+    <view class="stock-sub">{{stockInfo.name}}</view>
+  </view>
+
+  <view class="summary-banner">
+    <view class="summary-row">
+      <view class="summary-label">最早记录日期</view>
+      <view class="summary-value">{{marketSummary.earliestDate || '暂无'}}</view>
+    </view>
+    <view class="summary-row">
+      <view class="summary-label">总持有份数</view>
+      <view class="summary-value">{{marketSummary.totalCount}}</view>
+    </view>
+    <view class="summary-row">
+      <view class="summary-label">总持有成本</view>
+      <view class="summary-value">¥{{marketSummary.totalAmount}}</view>
+    </view>
+    <view class="summary-row market-row">
+      <view class="summary-label">最新市值</view>
+      <view class="summary-value">¥{{marketSummary.marketValue || '--'}}</view>
+    </view>
+    <view class="summary-row profit-row">
+      <view class="summary-label">浮盈/浮亏</view>
+      <view class="summary-value {{marketSummary.profitColor}}">
+        {{marketSummary.profitLabel || '--'}} ¥{{marketSummary.profitAmount || '--'}}
+      </view>
+    </view>
   </view>
 </view>

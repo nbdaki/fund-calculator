@@ -6,6 +6,63 @@
   border-radius: 12rpx;
   margin: 20rpx;
 }
+.stock-banner {
+  margin: 20rpx;
+  padding: 24rpx 24rpx 20rpx;
+  background: #ffffff;
+  border-radius: 18rpx;
+  border: 1rpx solid #f0f0f0;
+}
+.stock-title {
+  color: #333;
+  font-size: 28rpx;
+  margin-bottom: 16rpx;
+}
+.stock-value {
+  color: #fa541c;
+  font-size: 42rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+.stock-sub {
+  color: #999;
+  font-size: 24rpx;
+}
+.summary-banner {
+  margin: 20rpx;
+  padding: 24rpx 24rpx;
+  background: #fff;
+  border-radius: 18rpx;
+  border: 1rpx solid #f0f0f0;
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.summary-row:last-child {
+  border-bottom: none;
+}
+.summary-label {
+  color: #666;
+  font-size: 26rpx;
+}
+.summary-value {
+  color: #333;
+  font-size: 26rpx;
+  font-weight: bold;
+}
+.profit {
+  color: #ff4d4f;
+}
+.loss {
+  color: #52c41a;
+}
+.market-row .summary-value {
+  color: #333;
+}
 .item {
   padding: 20rpx;
   margin: 20rpx;
