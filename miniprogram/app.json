@@ -14,11 +14,15 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "当前市值"
+        "text": "当前市值",
+        "iconPath": "images/icons/home.png",
+        "selectedIconPath": "images/icons/home-active.png"
       },
       {
         "pagePath": "pages/transactions/index",
-        "text": "交易记录"
+        "text": "交易记录",
+        "iconPath": "images/icons/goods.png",
+        "selectedIconPath": "images/icons/goods-active.png"
       }
     ]
   },

@@ -6,11 +6,49 @@
   border-radius: 12rpx;
   margin: 20rpx;
 }
-.item {
-  padding: 20rpx;
+.table-wrap {
   margin: 20rpx;
   background: #fff;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  border: 1rpx solid #e8e8e8;
+}
+.table-header,
+.table-row {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 20rpx;
+}
+.table-header {
+  background: #f5f7fa;
+  font-weight: bold;
+}
+.table-row {
+  border-top: 1rpx solid #f0f0f0;
+}
+.cell {
+  flex: 1;
+  color: #333;
+  font-size: 26rpx;
+}
+.cell-date {
+  flex: 1.2;
+}
+.cell-price,
+.cell-count,
+.cell-fee,
+.cell-total {
+  flex: 1;
+  text-align: right;
+}
+.empty-tip {
+  padding: 30rpx 20rpx;
+  color: #999;
+  text-align: center;
+}
+.hint-text {
+  font-size: 9px;
+  font-style: italic;
 }
 
 /* 弹窗样式 */
@@ -26,7 +64,7 @@
   justify-content: center;
 }
 .modal {
-  width: 80%;
+  width: 84%;
   background: #fff;
   border-radius: 16rpx;
   padding: 30rpx;
@@ -36,14 +74,27 @@
   font-size: 32rpx;
   margin-bottom: 30rpx;
 }
-input {
+input,
+.picker-row {
   border: 1px solid #eee;
   padding: 20rpx;
   margin: 15rpx 0;
   border-radius: 8rpx;
+  font-size: 28rpx;
+}
+.picker-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.picker-value {
+  color: #666;
 }
 .btn-wrap {
   display: flex;
   justify-content: space-between;
   margin-top: 30rpx;
+}
+.btn-wrap button {
+  width: 45%;
 }

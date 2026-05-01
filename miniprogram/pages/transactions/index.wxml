@@ -2,25 +2,42 @@
 <view class="add-btn" bindtap="showModal">+ 添加交易记录</view>
 
 <!-- 交易列表 -->
-<view class="list">
-  <view class="item" wx:for="{{recordList}}" wx:key="index">
-    <view>单价：{{item.price}}</view>
-    <view>份数：{{item.count}}</view>
-    <view>手续费：{{item.count}}</view>
-    <view>总金额：{{item.count}}</view>
-    <view>时间：{{item.date}}</view>
+<view class="table-wrap">
+  <view class="table-header">
+    <view class="cell cell-date">时间</view>
+    <view class="cell cell-price">单价</view>
+    <view class="cell cell-count">份数</view>
+    <view class="cell cell-fee">手续费</view>
+    <view class="cell cell-total">总金额</view>
   </view>
+  <block wx:for="{{recordList}}" wx:key="_id">
+    <view class="table-row">
+      <view class="cell cell-date">{{item.date}}</view>
+      <view class="cell cell-price">¥{{item.price}}</view>
+      <view class="cell cell-count">{{item.count}}</view>
+      <view class="cell cell-fee">¥{{item.fee}}</view>
+      <view class="cell cell-total">¥{{item.total}}</view>
+    </view>
+  </block>
+  <view wx:if="{{!recordList.length}}" class="empty-tip">暂无交易记录</view>
 </view>
 
 <!-- 弹窗 -->
 <view class="modal-mask" wx:if="{{showModal}}">
   <view class="modal">
     <view class="title">新增交易</view>
-    <input placeholder="交易日期" bindinput="inputDate" value="{{date}}"></input>
-    <input placeholder="单价" bindinput="inputPrice" value="{{price}}"></input>
-    <input placeholder="份数" bindinput="inputCount" value="{{count}}"></input>
-    <input placeholder="手续费" bindinput="inputFee" value="{{fee}}"></input>
-    <input placeholder="总金额" bindinput="inputTotal" value="{{total}}"></input>
+
+    <picker mode="date" bindchange="chooseDate" value="{{date}}">
+      <view class="picker-row">交易日期：<text class="picker-value">{{date || '请选择日期'}}</text></view>
+    </picker>
+
+    <input placeholder="单价（保留三位小数）" type="number" bindinput="inputPrice" value="{{price}}" />
+    <input placeholder="份数（整数）" type="digit" bindinput="inputCount" value="{{count}}" />
+    <input placeholder="手续费（自动计算）" type="number" value="{{fee}}" disabled="true" />
+    <view class="hint-text">*费率按万一计算</view>
+    <input placeholder="总金额（自动计算）" type="number" value="{{total}}" disabled="true" />
+    <view class="hint-text">*单价*份数+手续费</view>
+
     <view class="btn-wrap">
       <button size="mini" bindtap="hideModal">取消</button>
       <button size="mini" type="primary" bindtap="saveRecord">保存</button>
