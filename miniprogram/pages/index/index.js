@@ -21,7 +21,8 @@ Page({
       marketValue: '',
       profitLabel: '',
       profitAmount: '',
-      profitColor: ''
+      profitColor: '',
+      annualizedReturn: ''
     },
   },
 
@@ -177,11 +178,23 @@ Page({
     const profit = marketValue - totalAmount;
     const profitLabel = profit >= 0 ? '+' : '-';
     const profitColor = profit >= 0 ? 'profit' : 'loss';
+    let annualizedReturn = '';
+    if (totalAmount > 0 && marketSummary.earliestDate) {
+      const startDate = new Date(marketSummary.earliestDate);
+      const today = new Date();
+      const dayDiff = Math.max(1, Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+      if (!Number.isNaN(startDate.getTime()) && dayDiff > 0) {
+        const rate = Math.pow(marketValue / totalAmount, 365 / dayDiff) - 1;
+        const sign = rate >= 0 ? '+' : '-';
+        annualizedReturn = `${sign}${Math.abs(rate * 100).toFixed(2)}`;
+      }
+    }
     this.setData({
       'marketSummary.marketValue': marketValue.toFixed(2),
       'marketSummary.profitLabel': profitLabel,
       'marketSummary.profitAmount': Math.abs(profit).toFixed(2),
-      'marketSummary.profitColor': profitColor
+      'marketSummary.profitColor': profitColor,
+      'marketSummary.annualizedReturn': annualizedReturn
     });
   }
 })

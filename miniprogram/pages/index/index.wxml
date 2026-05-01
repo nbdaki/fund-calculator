@@ -12,7 +12,7 @@
 
   <view class="summary-banner">
     <view class="summary-row">
-      <view class="summary-label">最早记录日期</view>
+      <view class="summary-label">定投开始日期</view>
       <view class="summary-value">{{marketSummary.earliestDate || '暂无'}}</view>
     </view>
     <view class="summary-row">
@@ -31,6 +31,12 @@
       <view class="summary-label">浮盈/浮亏</view>
       <view class="summary-value {{marketSummary.profitColor}}">
         {{marketSummary.profitLabel || '--'}} ¥{{marketSummary.profitAmount || '--'}}
+      </view>
+    </view>
+    <view class="summary-row">
+      <view class="summary-label">预计年化收益率</view>
+      <view class="summary-value {{marketSummary.profitColor}}">
+        {{marketSummary.annualizedReturn || '--'}}%
       </view>
     </view>
   </view>
