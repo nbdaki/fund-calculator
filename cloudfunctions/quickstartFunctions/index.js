@@ -1,9 +1,65 @@
 const cloud = require("wx-server-sdk");
+const https = require("https");
+const iconv = require("iconv-lite");
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV,
 });
 
 const db = cloud.database();
+
+const fetchStockData = (code) => {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'hq.sinajs.cn',
+      path: `/list=${code}`,
+      headers: {
+        Referer: 'https://finance.sina.com.cn'
+      }
+    };
+    https
+      .get(options, (res) => {
+        const chunks = [];
+        res.on("data", (chunk) => {
+          chunks.push(chunk);
+        });
+        res.on("end", () => {
+          const buffer = Buffer.concat(chunks);
+          const raw = iconv.decode(buffer, "gb18030");
+          resolve(raw);
+        });
+      })
+      .on("error", reject);
+  });
+};
+
+const getStockPrice = async (event) => {
+  const code = event.code || "sh513300";
+  try {
+    const raw = await fetchStockData(code);
+    const match = raw.match(/"([^"]*)"/);
+    if (!match || !match[1]) {
+      return { success: false, errMsg: "未获取到行情数据" };
+    }
+    const parts = match[1].split(",");
+    if (parts.length < 3) {
+      return { success: false, errMsg: "行情数据格式异常" };
+    }
+    return {
+      success: true,
+      code,
+      name: parts[0],
+      prevOpen: parts[2],
+      prevClose: parts[3],
+      raw: parts,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      errMsg: error && error.message ? error.message : String(error),
+    };
+  }
+};
+
 // 获取openid
 const getOpenId = async () => {
   // 获取基础信息
@@ -181,5 +237,7 @@ exports.main = async (event, context) => {
       return await insertRecord(event);
     case "deleteRecord":
       return await deleteRecord(event);
+    case "getStockPrice":
+      return await getStockPrice(event);
   }
 };
