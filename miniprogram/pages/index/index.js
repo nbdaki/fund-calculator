@@ -22,7 +22,9 @@ Page({
       profitLabel: '',
       profitAmount: '',
       profitColor: '',
-      annualizedReturn: ''
+      annualizedReturn: '',
+      irrReturn: '',
+      irrColor: ''
     },
   },
 
@@ -34,7 +36,9 @@ Page({
 
   loadRecords() {
     db.collection('transaction').orderBy('createTime', 'desc').get().then(res => {
-      this.setData({ recordList: res.data });
+      this.setData({ recordList: res.data }, () => {
+        this.computeMarketValue();
+      });
     }).catch(err => {
       console.error('获取记录失败', err);
       wx.showToast({ title: '获取记录失败', icon: 'none' });
@@ -154,7 +158,8 @@ Page({
               marketValue: '',
               profitLabel: '',
               profitAmount: '',
-              profitColor: ''
+              profitColor: '',
+              irrColor: ''
             }
           }, () => {
             this.computeMarketValue();
@@ -166,8 +171,38 @@ Page({
       });
   },
 
+  computeIRR(cashFlows, guess = 0.1) {
+    const maxIteration = 100;
+    const tolerance = 1e-6;
+    let rate = guess;
+    for (let i = 0; i < maxIteration; i++) {
+      let npv = 0;
+      let dnpv = 0;
+      for (let j = 0; j < cashFlows.length; j++) {
+        const { amount, years } = cashFlows[j];
+        const discount = Math.pow(1 + rate, years);
+        if (discount === 0) {
+          continue;
+        }
+        npv += amount / discount;
+        dnpv -= (years * amount) / (discount * (1 + rate));
+      }
+      if (Math.abs(npv) < tolerance) {
+        return rate;
+      }
+      if (dnpv === 0) {
+        break;
+      }
+      rate -= npv / dnpv;
+      if (Math.abs(rate) > 1e10) {
+        break;
+      }
+    }
+    return null;
+  },
+
   computeMarketValue() {
-    const { marketSummary, stockInfo } = this.data;
+    const { marketSummary, stockInfo, recordList } = this.data;
     const totalCount = Number(marketSummary.totalCount || 0);
     const closePrice = parseFloat(stockInfo.prevClose);
     if (!totalCount || Number.isNaN(closePrice)) {
@@ -189,12 +224,34 @@ Page({
         annualizedReturn = `${sign}${Math.abs(rate * 100).toFixed(2)}`;
       }
     }
+    let irrReturn = '';
+    if (recordList && recordList.length > 0 && marketValue > 0) {
+      const today = new Date();
+      const cashFlows = recordList.map(item => {
+        const date = new Date(item.date);
+        const days = Math.max(0, Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)));
+        return {
+          amount: -(parseFloat(item.total) || 0),
+          years: days / 365
+        };
+      });
+      cashFlows.push({ amount: marketValue, years: 0 });
+      const irr = this.computeIRR(cashFlows);
+      if (irr !== null && !Number.isNaN(irr) && isFinite(irr)) {
+        const sign = irr >= 0 ? '+' : '-';
+        irrReturn = `${sign}${Math.abs(irr * 100).toFixed(2)}`;
+      }
+    }
+    const irrColor = irrReturn >= 0 ? 'profit' : 'loss';
+
     this.setData({
       'marketSummary.marketValue': marketValue.toFixed(2),
       'marketSummary.profitLabel': profitLabel,
       'marketSummary.profitAmount': Math.abs(profit).toFixed(2),
       'marketSummary.profitColor': profitColor,
-      'marketSummary.annualizedReturn': annualizedReturn
+      'marketSummary.annualizedReturn': annualizedReturn,
+      'marketSummary.irrColor': irrColor,
+      'marketSummary.irrReturn': irrReturn
     });
   }
 })

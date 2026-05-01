@@ -39,5 +39,11 @@
         {{marketSummary.annualizedReturn || '--'}}%
       </view>
     </view>
+    <view class="summary-row">
+      <view class="summary-label">IRR 收益率（需要确认算法是否正确）</view>
+      <view class="summary-value {{marketSummary.irrColor}}">
+        {{marketSummary.irrReturn || '--'}}%
+      </view>
+    </view>
   </view>
 </view>
