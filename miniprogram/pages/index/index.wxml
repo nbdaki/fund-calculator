@@ -1,6 +1,6 @@
 <view class="container">
   <view class="stock-banner">
-    <view class="stock-title">昨日收盘价</view>
+    <view class="stock-title">最新收盘价</view>
     <view class="stock-value">
       <text wx:if="{{stockLoading}}">加载中...</text>
       <text wx:elif="{{stockInfo.prevClose}}">¥{{stockInfo.prevClose}}</text>
@@ -14,6 +14,14 @@
     <view class="summary-row">
       <view class="summary-label">定投开始日期</view>
       <view class="summary-value">{{marketSummary.earliestDate || '暂无'}}</view>
+    </view>
+    <view class="summary-row">
+      <view class="summary-label">持有天数</view>
+      <view class="summary-value">{{marketSummary.holdingDays || '暂无'}}</view>
+    </view>
+    <view class="summary-row">
+      <view class="summary-label">交易次数</view>
+      <view class="summary-value">{{marketSummary.transactionCount}}</view>
     </view>
     <view class="summary-row">
       <view class="summary-label">总持有份数</view>

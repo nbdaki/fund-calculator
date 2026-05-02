@@ -24,7 +24,9 @@ Page({
       profitColor: '',
       annualizedReturn: '',
       irrReturn: '',
-      irrColor: ''
+      irrColor: '',
+      holdingDays: '',
+      transactionCount: 0
     },
   },
 
@@ -36,7 +38,10 @@ Page({
 
   loadRecords() {
     db.collection('transaction').orderBy('createTime', 'desc').get().then(res => {
-      this.setData({ recordList: res.data }, () => {
+      this.setData({ 
+        recordList: res.data,
+        'marketSummary.transactionCount': res.data.length
+      }, () => {
         this.computeMarketValue();
       });
     }).catch(err => {
@@ -159,7 +164,9 @@ Page({
               profitLabel: '',
               profitAmount: '',
               profitColor: '',
-              irrColor: ''
+              irrColor: '',
+              holdingDays: '',
+              transactionCount: 0
             }
           }, () => {
             this.computeMarketValue();
@@ -214,6 +221,7 @@ Page({
     const profitLabel = profit >= 0 ? '+' : '-';
     const profitColor = profit >= 0 ? 'profit' : 'loss';
     let annualizedReturn = '';
+    let holdingDays = '';
     if (totalAmount > 0 && marketSummary.earliestDate) {
       const startDate = new Date(marketSummary.earliestDate);
       const today = new Date();
@@ -223,6 +231,7 @@ Page({
         const sign = rate >= 0 ? '+' : '-';
         annualizedReturn = `${sign}${Math.abs(rate * 100).toFixed(2)}`;
       }
+      holdingDays = dayDiff;
     }
     let irrReturn = '';
     if (recordList && recordList.length > 0 && marketValue > 0) {
@@ -251,7 +260,8 @@ Page({
       'marketSummary.profitColor': profitColor,
       'marketSummary.annualizedReturn': annualizedReturn,
       'marketSummary.irrColor': irrColor,
-      'marketSummary.irrReturn': irrReturn
+      'marketSummary.irrReturn': irrReturn,
+      'marketSummary.holdingDays': holdingDays
     });
   }
 })
