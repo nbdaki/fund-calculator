@@ -1,22 +1,31 @@
+<!-- 计划筛选 -->
+<view class="filter-row">
+  <picker mode="selector" range="{{planOptions}}" value="{{selectedPlanIndex}}" bindchange="choosePlan">
+    <view class="selector">{{planOptions[selectedPlanIndex] || '请选择计划'}}</view>
+  </picker>
+</view>
+
 <!-- 添加按钮 -->
-<view class="add-btn" bindtap="showModal">+ 添加交易记录</view>
+<button class="add-btn" bindtap="showModal" type="default" disabled="{{!selectedPlanId}}">+ 添加交易记录</button>
 
 <!-- 交易列表 -->
 <view class="table-wrap">
   <view class="table-header">
-    <view class="cell cell-date">时间</view>
-    <view class="cell cell-price">单价</view>
-    <view class="cell cell-count">份数</view>
-    <view class="cell cell-fee">手续费</view>
-    <view class="cell cell-total">总金额</view>
+    <view class="cell cell-date">交易日期</view>
+    <view class="cell cell-amount">定投金额</view>
+    <view class="cell cell-nav">净值</view>
+    <view class="cell cell-count">确认份额</view>
+    <view class="cell cell-action"></view>
   </view>
   <block wx:for="{{recordList}}" wx:key="_id">
     <view class="table-row">
       <view class="cell cell-date">{{item.date}}</view>
-      <view class="cell cell-price">¥{{item.price}}</view>
+      <view class="cell cell-amount">¥{{item.amount}}</view>
+      <view class="cell cell-nav">{{item.nav}}</view>
       <view class="cell cell-count">{{item.count}}</view>
-      <view class="cell cell-fee">¥{{item.fee}}</view>
-      <view class="cell cell-total">¥{{item.total}}</view>
+      <view class="cell cell-action">
+        <button size="mini" bindtap="deleteRecord" data-id="{{item._id}}">删除</button>
+      </view>
     </view>
   </block>
   <view wx:if="{{!recordList.length}}" class="empty-tip">暂无交易记录</view>
@@ -26,17 +35,18 @@
 <view class="modal-mask" wx:if="{{showModal}}">
   <view class="modal">
     <view class="title">新增交易</view>
-
+    <view class="field-row">
+      <view class="field-label">定投金额：¥{{selectedPlanAmount || '0.00'}}</view>
+    </view>
     <picker mode="date" bindchange="chooseDate" value="{{date}}">
-      <view class="picker-row">交易日期：<text class="picker-value">{{date || '请选择日期'}}</text></view>
+      <view class="picker-row"><text class="picker-value">{{date || '交易日期'}}</text></view>
     </picker>
-
-    <input placeholder="单价（保留三位小数）" type="digit" bindinput="inputPrice" value="{{price}}" />
-    <input placeholder="份数（整数）" type="number" bindinput="inputCount" value="{{count}}" />
-    <input placeholder="手续费（自动计算）" type="digit" value="{{fee}}" disabled="true" />
-    <view class="hint-text">*费率按万一计算</view>
-    <input placeholder="总金额（自动计算）" type="digit" value="{{total}}" disabled="true" />
-    <view class="hint-text">*单价*份数+手续费</view>
+    <input placeholder="净值" type="digit" bindinput="inputNav" value="{{nav}}" />
+    <view class="field-row">
+      <view class="field-label">份额</view>
+      <view class="field-value">{{count || '--'}}</view>
+    </view>
+    <view class="hint-text">*份额 = 定投金额 / 净值，手续费已移除</view>
 
     <view class="btn-wrap">
       <button size="mini" bindtap="hideModal">取消</button>

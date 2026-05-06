@@ -5,19 +5,42 @@ Page({
   data: {
     showModal: false,
     date: '',
-    price: '',
+    nav: '',
     count: '',
-    fee: '',
-    total: '',
-    recordList: []
+    recordList: [],
+    planList: [],
+    planOptions: [],
+    selectedPlanIndex: 0,
+    selectedPlanId: '',
+    selectedPlanAmount: ''
   },
 
   onShow() {
-    this.loadRecords();
+    this.loadPlans();
+  },
+
+  loadPlans() {
+    db.collection('plan').orderBy('createTime', 'desc').get().then(res => {
+      const planList = res.data;
+      const planOptions = planList.length ? planList.map(item => item.fundName || item.fundCode || '未命名计划') : ['请选择计划'];
+      const selectedPlanId = planList.length ? planList[0]._id : '';
+      this.setData({ planList, planOptions, selectedPlanIndex: 0, selectedPlanId }, () => {
+        this.loadRecords();
+      });
+    }).catch(err => {
+      console.error('获取计划失败', err);
+      wx.showToast({ title: '获取计划失败', icon: 'none' });
+    });
   },
 
   loadRecords() {
-    db.collection('transaction').orderBy('createTime', 'desc').get().then(res => {
+    const { selectedPlanId } = this.data;
+    if (!selectedPlanId) {
+      this.setData({ recordList: [] });
+      return;
+    }
+
+    db.collection('transaction').where({ plan_id: selectedPlanId }).orderBy('createTime', 'desc').get().then(res => {
       this.setData({ recordList: res.data });
     }).catch(err => {
       console.error('获取记录失败', err);
@@ -26,74 +49,81 @@ Page({
   },
 
   showModal() {
-    this.setData({ showModal: true });
+    const selectedPlan = this.data.planList.find(item => item._id === this.data.selectedPlanId) || {};
+    this.setData({
+      showModal: true,
+      date: '',
+      nav: '',
+      count: '',
+      selectedPlanAmount: selectedPlan.amount || ''
+    });
+  },
+
+  choosePlan(e) {
+    const selectedPlanIndex = e.detail.value;
+    const selectedPlan = this.data.planList[selectedPlanIndex] || {};
+    const selectedPlanId = selectedPlan._id || '';
+    const selectedPlanAmount = selectedPlan.amount || '';
+    this.setData({ selectedPlanIndex, selectedPlanId, selectedPlanAmount }, () => {
+      this.loadRecords();
+    });
   },
 
   hideModal() {
     this.setData({
       showModal: false,
       date: '',
-      price: '',
-      count: '',
-      fee: '',
-      total: ''
+      nav: '',
+      count: ''
     });
   },
 
   chooseDate(e) {
     this.setData({ date: e.detail.value });
   },
-  updateTotal(price, count) {
-    const unitPrice = parseFloat(price);
-    const unitCount = parseInt(count, 10);
-    if (Number.isNaN(unitPrice) || Number.isNaN(unitCount) || unitCount <= 0) {
-      this.setData({ fee: '', total: '' });
+  updateCount(nav, amount) {
+    const unitNav = parseFloat(nav);
+    const investAmount = parseFloat(amount);
+    if (Number.isNaN(unitNav) || unitNav <= 0 || Number.isNaN(investAmount) || investAmount <= 0) {
+      this.setData({ count: '' });
       return;
     }
-    const fee = unitPrice * unitCount * 0.0001;
-    const total = unitPrice * unitCount + fee;
-    this.setData({
-      fee: fee.toFixed(2),
-      total: total.toFixed(2)
-    });
+    const shares = investAmount / unitNav;
+    this.setData({ count: shares.toFixed(6) });
   },
-  inputPrice(e) {
-    const price = e.detail.value;
-    const { count } = this.data;
-    this.setData({ price }, () => this.updateTotal(price, count));
-  },
-  inputCount(e) {
-    const count = e.detail.value;
-    const { price } = this.data;
-    this.setData({ count }, () => this.updateTotal(price, count));
-  },
-  inputFee() {
-    // 手续费由系统自动计算，无需手动输入
+  inputNav(e) {
+    let nav = e.detail.value;
+    if (nav.includes('.')) {
+      const [intPart, decPart] = nav.split('.');
+      nav = intPart + '.' + decPart.slice(0, 4);
+    }
+    const { selectedPlanAmount } = this.data;
+    this.setData({ nav }, () => this.updateCount(nav, selectedPlanAmount));
   },
 
   saveRecord() {
-    const { date, price, count, total } = this.data;
-    if (!date || !price || !total) {
+    const { date, nav, count, selectedPlanId, selectedPlanAmount } = this.data;
+    if (!date || !nav || !count || !selectedPlanId || !selectedPlanAmount) {
       wx.showToast({ title: '请填写完整', icon: 'none' });
       return;
     }
 
-    const unitCount = parseInt(count, 10);
-    const unitPrice = parseFloat(price);
-    const fee = unitPrice * unitCount * 0.0001;
-    const unitTotal = parseFloat((unitPrice * unitCount + fee).toFixed(2));
+    const planAmount = parseFloat(selectedPlanAmount);
+    const unitNav = parseFloat(nav);
+    const unitCount = parseFloat(count);
 
-    if (Number.isNaN(unitPrice) || Number.isNaN(unitTotal) || Number.isNaN(unitCount) || unitCount <= 0) {
+    if (Number.isNaN(unitNav) || unitNav <= 0 || Number.isNaN(unitCount) || unitCount <= 0 || Number.isNaN(planAmount) || planAmount <= 0) {
       wx.showToast({ title: '请填写正确的数值', icon: 'none' });
       return;
     }
 
     const newItem = {
       date,
-      price: unitPrice.toFixed(3),
-      count: unitCount,
-      fee: fee.toFixed(2),
-      total: unitTotal.toFixed(2),
+      amount: planAmount.toFixed(2),
+      nav: unitNav.toFixed(4),
+      count: unitCount.toFixed(6),
+      fee: '0.00',
+      plan_id: selectedPlanId,
       createTime: new Date()
     };
 
@@ -101,11 +131,33 @@ Page({
       data: newItem
     }).then(res => {
       this.loadRecords();
-      this.setData({ showModal: false, date: '', price: '', count: '', fee: '', total: '' });
+      this.setData({ showModal: false, date: '', nav: '', count: '' });
       wx.showToast({ title: '保存成功' });
     }).catch(err => {
       console.error('保存失败', err);
       wx.showToast({ title: '保存失败', icon: 'none' });
+    });
+  },
+
+  deleteRecord(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) {
+      return;
+    }
+    wx.showModal({
+      title: '删除确认',
+      content: '确定要删除这条交易记录吗？',
+      success: res => {
+        if (res.confirm) {
+          db.collection('transaction').doc(id).remove().then(() => {
+            this.loadRecords();
+            wx.showToast({ title: '删除成功' });
+          }).catch(err => {
+            console.error('删除失败', err);
+            wx.showToast({ title: '删除失败', icon: 'none' });
+          });
+        }
+      }
     });
   }
 });
