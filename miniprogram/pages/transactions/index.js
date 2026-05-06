@@ -90,7 +90,7 @@ Page({
 
     const newItem = {
       date,
-      price: unitPrice.toFixed(2),
+      price: unitPrice.toFixed(3),
       count: unitCount,
       fee: fee.toFixed(2),
       total: unitTotal.toFixed(2),

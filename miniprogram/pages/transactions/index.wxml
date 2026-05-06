@@ -31,11 +31,11 @@
       <view class="picker-row">交易日期：<text class="picker-value">{{date || '请选择日期'}}</text></view>
     </picker>
 
-    <input placeholder="单价（保留三位小数）" type="number" bindinput="inputPrice" value="{{price}}" />
-    <input placeholder="份数（整数）" type="digit" bindinput="inputCount" value="{{count}}" />
-    <input placeholder="手续费（自动计算）" type="number" value="{{fee}}" disabled="true" />
+    <input placeholder="单价（保留三位小数）" type="digit" bindinput="inputPrice" value="{{price}}" />
+    <input placeholder="份数（整数）" type="number" bindinput="inputCount" value="{{count}}" />
+    <input placeholder="手续费（自动计算）" type="digit" value="{{fee}}" disabled="true" />
     <view class="hint-text">*费率按万一计算</view>
-    <input placeholder="总金额（自动计算）" type="number" value="{{total}}" disabled="true" />
+    <input placeholder="总金额（自动计算）" type="digit" value="{{total}}" disabled="true" />
     <view class="hint-text">*单价*份数+手续费</view>
 
     <view class="btn-wrap">
