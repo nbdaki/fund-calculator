@@ -1,0 +1,37 @@
+<!-- 添加按钮 -->
+<view class="add-btn" bindtap="showModal">+ 增加计划</view>
+
+<!-- 计划列表 -->
+<view class="table-wrap">
+  <view class="table-header">
+    <view class="cell cell-header-name">基金名称</view>
+    <view class="cell cell-header-last-name">金额</view>
+  </view>
+  <block wx:for="{{planList}}" wx:key="_id">
+    <view class="table-row {{item.rowClass}}" bindtap="editPlan" data-item="{{item}}">
+      <view class="cell cell-name">{{item.fundName}}</view>
+      <view class="cell cell-amount">¥{{item.amount}}</view>
+    </view>
+  </block>
+  <view wx:if="{{!planList.length}}" class="empty-tip">暂无定投计划</view>
+</view>
+
+<!-- 弹窗 -->
+<view class="modal-mask" wx:if="{{showModal}}">
+  <view class="modal">
+    <view class="title">{{isEdit ? '编辑定投计划' : '新增定投计划'}}</view>
+
+    <input placeholder="基金代码" bindinput="inputFundCode" value="{{fundCode}}" />
+    <input placeholder="基金名称" bindinput="inputFundName" value="{{fundName}}" />
+    <picker mode="date" bindchange="chooseDate" value="{{date}}">
+      <view class="picker-row"><text class="picker-value">{{date || '计划开始日期'}}</text></view>
+    </picker>
+    <input placeholder="周期（例如：每月1日）" bindinput="inputPeriod" value="{{period}}" />
+    <input placeholder="金额" type="digit" bindinput="inputAmount" value="{{amount}}" />
+
+    <view class="btn-wrap">
+      <button size="mini" bindtap="hideModal">取消</button>
+      <button size="mini" type="primary" bindtap="savePlan">保存</button>
+    </view>
+  </view>
+</view>
