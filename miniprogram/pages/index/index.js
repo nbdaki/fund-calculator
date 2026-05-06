@@ -7,6 +7,10 @@ Page({
     money: '',
     desc: '',
     recordList: [],
+    planList: [],
+    planOptions: [],
+    selectedPlanIndex: 0,
+    selectedPlanId: '',
     stockInfo: {
       code: 'sh513300',
       name: '',
@@ -31,13 +35,32 @@ Page({
   },
 
   onShow() {
-    this.loadRecords();
-    this.loadMarketSummary();
-    this.loadStockPrice();
+    this.loadPlans();
+  },
+
+  loadPlans() {
+    db.collection('plan').orderBy('createTime', 'desc').get().then(res => {
+      const planList = res.data;
+      const planOptions = planList.length ? planList.map(item => item.fundName || item.fundCode || '未命名计划') : ['请选择计划'];
+      const selectedPlanId = planList.length ? planList[0]._id : '';
+      this.setData({ planList, planOptions, selectedPlanIndex: 0, selectedPlanId }, () => {
+        this.loadRecords();
+        this.loadMarketSummary();
+        this.loadLatestNav();
+      });
+    }).catch(err => {
+      console.error('获取计划失败', err);
+      wx.showToast({ title: '获取计划失败', icon: 'none' });
+    });
   },
 
   loadRecords() {
-    db.collection('transaction').orderBy('createTime', 'desc').get().then(res => {
+    const { selectedPlanId } = this.data;
+    if (!selectedPlanId) {
+      this.setData({ recordList: [] });
+      return;
+    }
+    db.collection('transaction').where({ plan_id: selectedPlanId }).orderBy('createTime', 'desc').get().then(res => {
       this.setData({ 
         recordList: res.data
       }, () => {
@@ -49,57 +72,101 @@ Page({
     });
   },
 
-  loadStockPrice() {
-    this.setData({ stockLoading: true, 'stockInfo.error': '' });
-    wx.cloud.callFunction({
-      name: 'quickstartFunctions',
-      data: {
-        type: 'getStockPrice',
-        code: 'sh513300'
-      },
-      success: (res) => {
-        if (res && res.result && res.result.success) {
-          this.setData({
-            stockInfo: {
-              code: res.result.code,
-              name: res.result.name,
-              prevClose: res.result.prevClose,
-              error: ''
-            },
-            stockLoading: false
-          }, () => {
-            this.computeMarketValue();
-          });
-        } else {
-          this.setData({
-            'stockInfo.error': res.result && res.result.errMsg ? res.result.errMsg : '获取行情失败',
-            stockLoading: false
-          });
+  loadLatestNav() {
+    const { selectedPlanId } = this.data;
+    if (!selectedPlanId) {
+      this.setData({
+        stockInfo: {
+          code: '',
+          name: '',
+          prevClose: '',
+          error: '请选择计划'
         }
-      },
-      fail: (err) => {
-        console.error('获取行情失败', err);
+      });
+      return;
+    }
+    db.collection('transaction').where({ plan_id: selectedPlanId }).orderBy('createTime', 'desc').limit(1).get().then(res => {
+      if (res.data && res.data.length > 0) {
+        const latestTransaction = res.data[0];
         this.setData({
-          'stockInfo.error': '获取行情失败',
+          stockInfo: {
+            code: '',
+            name: '',
+            prevClose: latestTransaction.nav,
+            error: ''
+          },
+          stockLoading: false
+        }, () => {
+          this.computeMarketValue();
+        });
+      } else {
+        this.setData({
+          stockInfo: {
+            code: '',
+            name: '',
+            prevClose: '',
+            error: '暂无交易记录'
+          },
           stockLoading: false
         });
       }
+    }).catch(err => {
+      console.error('获取最新净值失败', err);
+      this.setData({
+        stockInfo: {
+          code: '',
+          name: '',
+          prevClose: '',
+          error: '获取净值失败'
+        },
+        stockLoading: false
+      });
+    });
+  },
+
+  choosePlan(e) {
+    const selectedPlanIndex = e.detail.value;
+    const selectedPlan = this.data.planList[selectedPlanIndex] || {};
+    const selectedPlanId = selectedPlan._id || '';
+    this.setData({ selectedPlanIndex, selectedPlanId }, () => {
+      this.loadRecords();
+      this.loadMarketSummary();
+      this.loadLatestNav();
     });
   },
 
   loadMarketSummary() {
-    const db = wx.cloud.database();
+    const { selectedPlanId, planList } = this.data;
+    if (!selectedPlanId) {
+      this.setData({
+        marketSummary: {
+          earliestDate: '',
+          totalCount: 0,
+          totalAmount: '0.00',
+          transactionCount: 0,
+          marketValue: '',
+          profitLabel: '',
+          profitAmount: '',
+          profitColor: '',
+          irrColor: '',
+          holdingDays: ''
+        }
+      });
+      return;
+    }
+    const selectedPlan = planList.find(p => p._id === selectedPlanId);
+    const earliestDate = selectedPlan ? new Date(selectedPlan.createTime).toISOString().split('T')[0] : '';
     db.collection('transaction').aggregate()
+      .match({ plan_id: selectedPlanId })
       .project({
         date: '$date',
-        count: { $toInt: '$count' },
-        total: { $toDouble: '$total' }
+        count: { $toDouble: '$count' },
+        amount: { $toDouble: '$amount' }
       })
       .group({
         _id: null,
-        earliestDate: { $min: '$date' },
         totalCount: { $sum: '$count' },
-        totalAmount: { $sum: '$total' },
+        totalAmount: { $sum: '$amount' },
         transactionCount: { $sum: 1 }
       })
       .end()
@@ -108,7 +175,7 @@ Page({
         if (summary) {
           this.setData({
             marketSummary: {
-              earliestDate: summary.earliestDate || '',
+              earliestDate,
               totalCount: summary.totalCount || 0,
               totalAmount: ((summary.totalAmount || 0)).toFixed(2),
               transactionCount: summary.transactionCount || 0,
@@ -121,6 +188,22 @@ Page({
             }
           }, () => {
             this.computeMarketValue();
+          });
+        } else {
+          // 暂无交易记录时，置空相关数据
+          this.setData({
+            marketSummary: {
+              earliestDate,
+              totalCount: 0,
+              totalAmount: '0.00',
+              transactionCount: 0,
+              marketValue: '',
+              profitLabel: '',
+              profitAmount: '',
+              profitColor: '',
+              irrColor: '',
+              holdingDays: ''
+            }
           });
         }
       })

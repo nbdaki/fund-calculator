@@ -1,4 +1,11 @@
 <view class="container">
+  <!-- 计划筛选 -->
+  <view class="filter-row">
+    <picker mode="selector" range="{{planOptions}}" value="{{selectedPlanIndex}}" bindchange="choosePlan">
+      <view class="selector">{{planOptions[selectedPlanIndex] || '请选择计划'}}</view>
+    </picker>
+  </view>
+
   <view class="stock-banner">
     <view class="stock-title">最新收盘价</view>
     <view class="stock-value">
