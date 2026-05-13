@@ -89,7 +89,7 @@ Page({
       return;
     }
     const shares = investAmount / unitNav;
-    this.setData({ count: shares.toFixed(6) });
+    this.setData({ count: shares.toFixed(2) });
   },
   inputNav(e) {
     let nav = e.detail.value;
@@ -121,7 +121,7 @@ Page({
       date,
       amount: planAmount.toFixed(2),
       nav: unitNav.toFixed(4),
-      count: unitCount.toFixed(6),
+      count: unitCount.toFixed(2),
       fee: '0.00',
       plan_id: selectedPlanId,
       createTime: new Date()
